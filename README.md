@@ -1,4 +1,5 @@
 # Overrider
+[![Build Status](https://travis-ci.org/joker1007/overrider.svg?branch=master)](https://travis-ci.org/joker1007/overrider)
 
 This gem adds `override` syntax that is similar to Java's one.
 `override` syntax ensures that a modified method has super method.
