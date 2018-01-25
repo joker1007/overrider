@@ -52,7 +52,11 @@ class B2 < B1
 end # => raise
 ```
 
-## Caution
+### for Production
+If you want to disable Abstriker, write `Abstriker.disable = true` at first line.
+If Abstriker is disabled, TracePoint never runs, and so there is no overhead of VM instruction.
+
+### Caution
 
 Must not call `override` outer class definition.
 
