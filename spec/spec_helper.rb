@@ -12,6 +12,10 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
+  config.before(:suite) do
+    GC.disable
+  end
+
   config.after(:suite) do
     ObjectSpace.each_object do |obj|
       if obj.is_a?(TracePoint)

@@ -90,6 +90,9 @@ RSpec.describe Overrider do
         module C1
           def foo
           end
+
+          def bar
+          end
         end
 
         class C2
@@ -100,6 +103,35 @@ RSpec.describe Overrider do
 
           include C1
         end
+
+        Class.new do
+          extend Overrider
+
+          override def foo
+          end
+
+          pr = proc {}
+          pr.call
+
+          include C1
+        end
+
+        ex = nil
+        begin
+          class C3
+            extend Overrider
+
+            override def foo
+            end
+
+            raise "err"
+
+            include C1
+          end
+        rescue RuntimeError => e
+          ex = e
+        end
+        expect(ex).to be_a(RuntimeError)
       }.not_to raise_error
     end
   end
@@ -198,8 +230,22 @@ RSpec.describe Overrider do
 
           extend E1
         end
-
         expect(E2).to ensure_trace_point_disable
+
+        Class.new do
+          extend Overrider
+
+          class << self
+            def foo
+            end
+          end
+          override_singleton_method :foo
+
+          pr = proc {}
+          pr.call
+
+          extend E1
+        end
       }.not_to raise_error
     end
   end

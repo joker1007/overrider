@@ -14,17 +14,35 @@ module Overrider
 
   private
 
-  def override(symbol)
-    caller_info = caller_locations(1, 1)[0]
-    event_type = if caller_info.label.match?(/block/)
-      :b_return
-    else
-      :end
+  using Module.new {
+    refine Module do
+      def detect_event_type
+        caller_info = caller_locations(2, 1)[0]
+        if caller_info.label.match?(/block/)
+          [:b_call, :b_return, :raise]
+        else
+          [:end, :raise]
+        end
+      end
     end
+  }
 
-    @__overrider_trace_point ||= TracePoint.trace(event_type) do |t|
+  def override(symbol)
+    event_type = detect_event_type
+
+    block_count = 1
+    @__overrider_trace_point ||= TracePoint.trace(*event_type) do |t|
+      if t.event == :raise
+        @__overrider_trace_point.disable
+        @__overrider_trace_point = nil
+        next
+      end
+
+      block_count += 1 if t.event == :b_call
+      block_count -= 1 if t.event == :b_return
+
       klass = t.self
-      if klass == self
+      if klass == self && (t.event == :end || t.event == :b_return && block_count.zero?)
         @ensure_overrides.each do |n|
           meth = klass.instance_method(n)
           unless meth.super_method
@@ -43,16 +61,21 @@ module Overrider
   end
 
   def override_singleton_method(symbol)
-    caller_info = caller_locations(1, 1)[0]
-    event_type = if caller_info.label.match?(/block/)
-      :b_return
-    else
-      :end
-    end
+    event_type = detect_event_type
 
-    @__overrider_singleton_trace_point ||= TracePoint.trace(event_type) do |t|
+    block_count = 1
+    @__overrider_singleton_trace_point ||= TracePoint.trace(*event_type) do |t|
+      if t.event == :raise
+        @__overrider_singleton_trace_point.disable
+        @__overrider_singleton_trace_point = nil
+        next
+      end
+
+      block_count += 1 if t.event == :b_call
+      block_count -= 1 if t.event == :b_return
+
       klass = t.self
-      if klass == self
+      if klass == self && (t.event == :end || t.event == :b_return && block_count.zero?)
         @ensure_overrides.each do |n|
           meth = klass.singleton_class.instance_method(n)
           unless meth.super_method
