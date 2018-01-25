@@ -1,4 +1,19 @@
 RSpec.describe Overrider do
+  RSpec::Matchers.define :ensure_trace_point_disable do
+    match do |klass|
+      klass.instance_variable_get("@__overrider_trace_point").nil? &&
+        klass.instance_variable_get("@__overrider_singleton_trace_point").nil?
+    end
+
+    failure_message do
+      "trace_point cleared"
+    end
+
+    failure_message_when_negated do
+      "trace_point remained"
+    end
+  end
+
   context "Unless `override` method has super method" do
     it "does not raise", aggregate_failures: true do
       expect {
@@ -14,14 +29,16 @@ RSpec.describe Overrider do
           end
         end
       }.not_to raise_error
+      expect(A2).to ensure_trace_point_disable
 
       expect {
-        Class.new(A1) do
+        c = Class.new(A1) do
           extend Overrider
 
           override def foo
           end
         end
+        expect(c).to ensure_trace_point_disable
       }.not_to raise_error
     end
   end
@@ -43,17 +60,20 @@ RSpec.describe Overrider do
         ex = e
       end
 
+      expect(B2).to ensure_trace_point_disable
       expect(ex).to be_a(Overrider::NoSuperMethodError)
       expect(ex.override_class).to eq(B2)
       expect(ex.unbound_method.name).to eq(:foo)
 
       begin
-        Class.new do
+        c = Class.new do
           extend Overrider
 
           override def bar
           end
         end
+
+        expect(c).to ensure_trace_point_disable
       rescue Overrider::NoSuperMethodError => e
         ex = e
       end
@@ -105,12 +125,13 @@ RSpec.describe Overrider do
         ex = e
       end
 
+      expect(D2).to ensure_trace_point_disable
       expect(ex).to be_a(Overrider::NoSuperMethodError)
       expect(ex.override_class).to eq(D2)
       expect(ex.unbound_method.name).to eq(:foo)
 
       begin
-        Class.new do
+        c = Class.new do
           extend Overrider
 
           class << self
@@ -120,6 +141,8 @@ RSpec.describe Overrider do
 
           override_singleton_method :bar
         end
+
+        expect(c).to ensure_trace_point_disable
       rescue Overrider::NoSuperMethodError => e
         ex = e
       end
@@ -143,6 +166,8 @@ RSpec.describe Overrider do
 
         override_singleton_method :foo
       end
+
+      expect(D2_2).to ensure_trace_point_disable
     end
   end
 
@@ -173,6 +198,8 @@ RSpec.describe Overrider do
 
           extend E1
         end
+
+        expect(E2).to ensure_trace_point_disable
       }.not_to raise_error
     end
   end
@@ -193,6 +220,8 @@ RSpec.describe Overrider do
           override_singleton_method def self.foo
           end
         end
+
+        expect(F2).to ensure_trace_point_disable
       }.not_to raise_error
     end
   end

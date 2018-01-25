@@ -28,6 +28,8 @@ module Overrider
         @ensure_overrides.each do |n|
           meth = klass.instance_method(n)
           unless meth.super_method
+            @__overrider_trace_point.disable
+            @__overrider_trace_point = nil
             raise NoSuperMethodError.new(klass, meth)
           end
         end
@@ -54,6 +56,8 @@ module Overrider
         @ensure_overrides.each do |n|
           meth = klass.singleton_class.instance_method(n)
           unless meth.super_method
+            @__overrider_singleton_trace_point.disable
+            @__overrider_singleton_trace_point = nil
             raise NoSuperMethodError.new(klass, meth)
           end
         end
