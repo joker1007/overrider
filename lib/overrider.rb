@@ -12,6 +12,20 @@ module Overrider
     end
   end
 
+  @disable = false
+
+  def self.disable=(v)
+    @disable = v
+  end
+
+  def self.disabled?
+    @disable
+  end
+
+  def self.enabled?
+    !disabled?
+  end
+
   private
 
   using Module.new {
@@ -28,6 +42,8 @@ module Overrider
   }
 
   def override(symbol)
+    return if Overrider.disabled?
+
     event_type = detect_event_type
 
     block_count = 1
@@ -61,6 +77,8 @@ module Overrider
   end
 
   def override_singleton_method(symbol)
+    return if Overrider.disabled?
+
     event_type = detect_event_type
 
     block_count = 1

@@ -360,4 +360,26 @@ RSpec.describe Overrider do
 
     expect(ex).to be_a(Overrider::NoSuperMethodError)
   end
+
+  context "Overrider.disable = true" do
+    around do |ex|
+      Overrider.disable = true
+      ex.call
+      Overrider.disable = false
+    end
+
+    it "does not raise" do
+      expect {
+        class B1
+        end
+
+        class B2 < B1
+          extend Overrider
+
+          override def foo
+          end
+        end
+      }.not_to raise_error
+    end
+  end
 end
