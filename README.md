@@ -53,8 +53,8 @@ end # => raise
 ```
 
 ### for Production
-If you want to disable Abstriker, write `Abstriker.disable = true` at first line.
-If Abstriker is disabled, TracePoint never runs, and so there is no overhead of VM instruction.
+If you want to disable Overrider, write `Overrider.disable = true` at first line.
+If Overrider is disabled, TracePoint never runs, and so there is no overhead of VM instruction.
 
 ### Caution
 
