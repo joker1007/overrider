@@ -52,6 +52,31 @@ class B2 < B1
 end # => raise
 ```
 
+## Caution
+
+Must not call `override` outer class definition.
+
+ex.
+
+```ruby
+class A1
+  def foo
+  end
+end
+
+class A2 < A1
+  extend Overrider
+
+  def foo
+  end
+end
+
+A2.send(:override, :foo)
+```
+
+This case leaves enabled TracePoint.
+It is very high overhead.
+
 ### Examples
 
 #### include module method after override method
