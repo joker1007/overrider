@@ -31,11 +31,13 @@ module Overrider
   using Module.new {
     refine Module do
       def detect_event_type
-        caller_info = caller_locations(2, 1)[0]
-        if caller_info.label.match?(/block/)
-          [:b_call, :b_return, :raise]
-        else
+        caller_info = caller_locations(2, 2)[0]
+        if caller_info.label.match?(/<class/) || caller_info.label.match?(/<module/)
           [:end, :raise]
+        elsif caller_info.label.match?(/singleton class/)
+          [:end, :raise]
+        else
+          [:b_call, :b_return, :raise]
         end
       end
     end
