@@ -16,7 +16,6 @@ RSpec.describe Overrider do
 
   context "Unless `override` method has super method" do
     it "does not raise", aggregate_failures: true do
-      expect {
         class A1
           def foo
           end
@@ -28,8 +27,6 @@ RSpec.describe Overrider do
           override def foo
           end
         end
-      }.not_to raise_error
-      expect(A2).to ensure_trace_point_disable
 
       expect {
         c = Class.new(A1) do
@@ -370,10 +367,10 @@ RSpec.describe Overrider do
 
     it "does not raise" do
       expect {
-        class B1
+        class K1
         end
 
-        class B2 < B1
+        class K2 < K1
           extend Overrider
 
           override def foo
@@ -381,5 +378,67 @@ RSpec.describe Overrider do
         end
       }.not_to raise_error
     end
+  end
+
+  it "supports to call `override` outer class definition" do
+    class L1
+      def bar
+      end
+    end
+
+    class L2 < L1
+      extend Overrider
+
+      def foo
+      end
+    end
+
+    ex = nil
+    begin
+      L2.send(:override, :foo)
+    rescue Overrider::NoSuperMethodError => e
+      ex = e
+    end
+    expect(ex).to be_a(Overrider::NoSuperMethodError)
+
+    class L3 < L1
+      extend Overrider
+
+      def bar
+      end
+    end
+
+    L3.send(:override, :bar)
+  end
+
+  it "supports to call `override_singleton_method` outer class definition" do
+    class M1
+      def self.bar
+      end
+    end
+
+    class M2 < M1
+      extend Overrider
+
+      def self.foo
+      end
+    end
+
+    ex = nil
+    begin
+      M2.send(:override_singleton_method, :foo)
+    rescue Overrider::NoSuperMethodError => e
+      ex = e
+    end
+    expect(ex).to be_a(Overrider::NoSuperMethodError)
+
+    class M3 < M1
+      extend Overrider
+
+      def self.bar
+      end
+    end
+
+    M3.send(:override_singleton_method, :bar)
   end
 end
