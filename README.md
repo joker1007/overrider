@@ -1,5 +1,6 @@
 # Overrider
 [![Build Status](https://travis-ci.org/joker1007/overrider.svg?branch=master)](https://travis-ci.org/joker1007/overrider)
+[![Gem Version](https://badge.fury.io/rb/overrider.svg)](https://badge.fury.io/rb/overrider)
 
 This gem adds `override` syntax that is similar to Java's one.
 `override` syntax ensures that a modified method has super method.
@@ -7,7 +8,13 @@ This gem adds `override` syntax that is similar to Java's one.
 Unless the method has super method, this gem raise `Overrider::NoSuperMethodError`.
 
 This gem is pseudo static code analyzer by `TracePoint` and `Ripper`.
+
 it detect abstract violation when class(module) is defined, not runtime.
+
+### My similar gems
+
+- [finalist](https://github.com/joker1007/finalist) (`final` implementation)
+- [abstriker](https://github.com/joker1007/abstriker) (`abstract` implementation)
 
 ## Installation
 
