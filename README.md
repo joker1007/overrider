@@ -6,6 +6,9 @@ This gem adds `override` syntax that is similar to Java's one.
 
 Unless the method has super method, this gem raise `Overrider::NoSuperMethodError`.
 
+This gem is pseudo static code analyzer by `TracePoint` and `Ripper`.
+it detect abstract violation when class(module) is defined, not runtime.
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -55,31 +58,6 @@ end # => raise
 ### for Production
 If you want to disable Overrider, write `Overrider.disable = true` at first line.
 If Overrider is disabled, TracePoint never runs, and so there is no overhead of VM instruction.
-
-### Caution
-
-Must not call `override` outer class definition.
-
-ex.
-
-```ruby
-class A1
-  def foo
-  end
-end
-
-class A2 < A1
-  extend Overrider
-
-  def foo
-  end
-end
-
-A2.send(:override, :foo)
-```
-
-This case leaves enabled TracePoint.
-It is very high overhead.
 
 ### Examples
 
