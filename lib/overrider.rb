@@ -28,45 +28,26 @@ module Overrider
 
   private
 
-  using Module.new {
-    refine Module do
-      def detect_event_type
-        caller_info = caller_locations(2, 2)[0]
-        if caller_info.label.match?(/<class/) || caller_info.label.match?(/<module/)
-          [:end, :raise]
-        elsif caller_info.label.match?(/singleton class/)
-          [:end, :raise]
-        else
-          [:b_call, :b_return, :raise]
-        end
-      end
-    end
-  }
-
   def override(symbol)
     return if Overrider.disabled?
 
-    event_type = detect_event_type
-
-    block_count = 1
-    @__overrider_trace_point ||= TracePoint.trace(*event_type) do |t|
+    @__overrider_trace_point ||= TracePoint.trace(:end, :c_return, :raise) do |t|
       if t.event == :raise
         @__overrider_trace_point.disable
         @__overrider_trace_point = nil
         next
       end
 
-      block_count += 1 if t.event == :b_call
-      block_count -= 1 if t.event == :b_return
-
       klass = t.self
-      if klass == self && (t.event == :end || t.event == :b_return && block_count.zero?)
+      target_end_event = klass == self && t.event == :end
+      target_c_return_event = (klass == Class || klass == Module) && t.event == :c_return && t.method_id == :new
+      if target_end_event || target_c_return_event
         @ensure_overrides.each do |n|
-          meth = klass.instance_method(n)
+          meth = self.instance_method(n)
           unless meth.super_method
             @__overrider_trace_point.disable
             @__overrider_trace_point = nil
-            raise NoSuperMethodError.new(klass, meth)
+            raise NoSuperMethodError.new(self, meth)
           end
         end
         @__overrider_trace_point.disable
@@ -81,27 +62,23 @@ module Overrider
   def override_singleton_method(symbol)
     return if Overrider.disabled?
 
-    event_type = detect_event_type
-
-    block_count = 1
-    @__overrider_singleton_trace_point ||= TracePoint.trace(*event_type) do |t|
+    @__overrider_singleton_trace_point ||= TracePoint.trace(:end, :c_return, :raise) do |t|
       if t.event == :raise
         @__overrider_singleton_trace_point.disable
         @__overrider_singleton_trace_point = nil
         next
       end
 
-      block_count += 1 if t.event == :b_call
-      block_count -= 1 if t.event == :b_return
-
       klass = t.self
-      if klass == self && (t.event == :end || t.event == :b_return && block_count.zero?)
+      target_end_event = klass == self && t.event == :end
+      target_c_return_event = (klass == Class || klass == Module) && t.event == :c_return && t.method_id == :new
+      if target_end_event || target_c_return_event
         @ensure_overrides.each do |n|
-          meth = klass.singleton_class.instance_method(n)
+          meth = self.singleton_class.instance_method(n)
           unless meth.super_method
             @__overrider_singleton_trace_point.disable
             @__overrider_singleton_trace_point = nil
-            raise NoSuperMethodError.new(klass, meth)
+            raise NoSuperMethodError.new(self, meth)
           end
         end
         @__overrider_singleton_trace_point.disable
