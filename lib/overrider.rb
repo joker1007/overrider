@@ -74,7 +74,7 @@ module Overrider
       Overrider.sexps[caller_info.absolute_path] ||= Ripper.sexp(File.read(caller_info.absolute_path))
     end
 
-    @__overrider_trace_point ||= TracePoint.trace(:end, :c_return, :return, :return, :raise) do |t|
+    @__overrider_trace_point ||= TracePoint.trace(:end, :c_return, :return, :raise) do |t|
       if t.event == :raise
         @__overrider_trace_point.disable
         @__overrider_trace_point = nil

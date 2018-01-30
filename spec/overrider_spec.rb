@@ -66,7 +66,6 @@ RSpec.describe Overrider do
         c = Class.new do
           extend Overrider
 
-          p self
           override def bar
           end
         end
