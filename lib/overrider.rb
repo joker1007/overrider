@@ -66,6 +66,7 @@ module Overrider
     return if Overrider.disabled?
 
     @ensure_overrides ||= Set.new
+    owner = self
     @ensure_overrides.add(instance_method(symbol))
 
     caller_info = caller_locations(1, 1)[0]
@@ -105,7 +106,7 @@ module Overrider
       end
 
       target_end_event = klass == self && t.event == :end
-      target_c_return_event = (klass == Class || klass == Module) && t.event == :c_return && t.method_id == :new
+      target_c_return_event = (klass == Class || klass == Module) && t.event == :c_return && t.method_id == :new && t.return_value == owner
 
       if target_end_event || target_c_return_event || target_outer_override
         @ensure_overrides.each do |meth|
@@ -127,6 +128,7 @@ module Overrider
     return if Overrider.disabled?
 
     @ensure_overrides ||= Set.new
+    owner = self
     @ensure_overrides.add(singleton_class.instance_method(symbol))
 
     caller_info = caller_locations(1, 1)[0]
@@ -166,7 +168,7 @@ module Overrider
       end
 
       target_end_event = klass == self && t.event == :end
-      target_c_return_event = (klass == Class || klass == Module) && t.event == :c_return && t.method_id == :new
+      target_c_return_event = (klass == Class || klass == Module) && t.event == :c_return && t.method_id == :new && t.return_value == owner
       if target_end_event || target_c_return_event || target_outer_override_singleton_method
         @ensure_overrides.each do |meth|
           unless meth.super_method
