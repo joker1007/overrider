@@ -122,7 +122,7 @@ module Overrider
   }
 
   def override(symbol)
-    return if Overrider.disabled?
+    return symbol if Overrider.disabled?
 
     owner = self
     override_methods.add(instance_method(symbol))
@@ -138,7 +138,7 @@ module Overrider
   end
 
   def override_singleton_method(symbol)
-    return if Overrider.disabled?
+    return symbol if Overrider.disabled?
 
     owner = self
     override_methods.add(singleton_class.instance_method(symbol))
